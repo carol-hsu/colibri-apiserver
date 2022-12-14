@@ -31,7 +31,6 @@ RUN go install -mod=readonly k8s.io/kube-openapi/cmd/openapi-gen && \
         -r /dev/null
 
 RUN GO111MODULE=on go mod download
-#RUN go install -ldflags "-s -w -X main.version=$VERSION" -o /go/bin/colibri-apiserver colibri-apiserver/adapter
 RUN go build -o /go/bin/colibri-apiserver colibri-apiserver/adapter
 
 # runtime image

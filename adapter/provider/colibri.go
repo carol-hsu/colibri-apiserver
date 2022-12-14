@@ -19,16 +19,14 @@ package provider
 import (
 	"context"
 	"time"
-    "net/http"
 
-	"k8s.io/klog/v2"
+//	"k8s.io/klog/v2"
 	"github.com/emicklei/go-restful"
     apierr "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/metrics/pkg/apis/custom_metrics"
@@ -40,12 +38,6 @@ import (
 type customKey struct {
     provider.CustomMetricInfo
 	types.NamespacedName
-}
-
-type jobParam struct {
-    Frequency    int `json:"freq" description:"frequency of query" default:"10"`
-    Iteration   int `json:"iter" description:"iteration of query" default:"1000"`
-    Percentile  int `json:"pert" description:"percentile of data analytics" default:"99"`
 }
 
 
@@ -66,160 +58,6 @@ func NewProvider(client dynamic.Interface, mapper apimeta.RESTMapper) (provider.
 	return p, p.webService()
 }
 
-func (p *colibriProvider) webService() *restful.WebService {
-	ws := new(restful.WebService)
-    ws.Path("/colibri").Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON)
-
-    ws.Route(ws.POST("/{namespace}/{pod}/{container}").
-                To(p.setColibriJob).
-                Reads(jobParam{}))
-
-//    ws.Route(ws.POST("/{namespace}/{pod}/{container}").
-//                To(p.runColibriJob))
-
-    ws.Route(ws.GET("/{namespace}/{pod}/{container}").
-                To(p.showColibriJob).
-                Writes(jobParam{}))
-	return ws
-}
-
-func (p *colibriProvider) infoWrapper(metric string, nsname types.NamespacedName) customKey{
-
-    groupResource := schema.ParseGroupResource("pods")
-    info := provider.CustomMetricInfo{
-                        GroupResource: groupResource,
-                        Metric:        metric,
-                        Namespaced:    true,
-                    }
-
-    info, _, err := info.Normalized(p.mapper)
-
-    if err != nil {
-		klog.Errorf("Error normalizing info: %s", err)
-	}
-
-    return customKey {
-                CustomMetricInfo: info,
-                NamespacedName:   nsname,
-	       }
-
-}
-
-//set parameter for a colibri job
-func (p *colibriProvider) setColibriJob(request *restful.Request, response *restful.Response){
-    ns := request.PathParameter("namespace")
-    pname := request.PathParameter("pod")
-    cname := request.PathParameter("container")
-
-    klog.Infof("Get: "+ ns +" "+ pname +" "+ cname)
-    namespacedName := types.NamespacedName{
-                            Name: pname,
-                            Namespace: ns,
-                      }
-
-    //TODO: check all naming is legel
-    //param == freq, iter, pert
-
-    param := new(jobParam)
-    if err := request.ReadEntity(&param); err != nil {
-        response.WriteError(http.StatusInternalServerError, err)
-        return
-    }
-
-    freqInfo := p.infoWrapper(cname+"-freq", namespacedName)
-    p.values[freqInfo] = *resource.NewQuantity(int64(param.Frequency), resource.DecimalSI)
-
-    iterInfo := p.infoWrapper(cname+"-iter", namespacedName)
-    p.values[iterInfo] = *resource.NewQuantity(int64(param.Iteration), resource.DecimalSI)
-
-    pertInfo := p.infoWrapper(cname+"-pert", namespacedName)
-    p.values[pertInfo] = *resource.NewQuantity(int64(param.Percentile), resource.DecimalSI)
-
-    response.WriteEntity(param)
-
-}
-
-//get parameters of a job
-func (p *colibriProvider) showColibriJob(request *restful.Request, response *restful.Response){
-    ns := request.PathParameter("namespace")
-    pname := request.PathParameter("pod")
-    cname := request.PathParameter("container")
-
-    klog.Infof("Get: "+ ns +" "+ pname +" "+ cname)
-    namespacedName := types.NamespacedName{
-                            Name: pname,
-                            Namespace: ns,
-                      }
-    //TODO: check all naming is legel
-    freqInfo := p.infoWrapper(cname+"-freq", namespacedName)
-    freq, found := p.values[freqInfo]
-    if !found {
-        response.WriteErrorString(http.StatusBadRequest, provider.NewMetricNotFoundError(freqInfo.GroupResource, freqInfo.Metric).Error())
-        return
-    }
-
-    iterInfo := p.infoWrapper(cname+"-iter", namespacedName)
-    iter, found := p.values[iterInfo]
-    if !found {
-        response.WriteErrorString(http.StatusBadRequest, provider.NewMetricNotFoundError(iterInfo.GroupResource, iterInfo.Metric).Error())
-        return
-    }
-
-    pertInfo := p.infoWrapper(cname+"-pert", namespacedName)
-    pert, found := p.values[pertInfo]
-    if !found {
-        response.WriteErrorString(http.StatusBadRequest, provider.NewMetricNotFoundError(pertInfo.GroupResource, pertInfo.Metric).Error())
-        return
-    }
-
-
-    response.WriteEntity(jobParam{
-                            Frequency: int(freq.Value()),
-                            Iteration: int(iter.Value()),
-                            Percentile: int(pert.Value()),
-                        })
-
-}
-
-
-func (p *colibriProvider) runColibriJob(request *restful.Request, response *restful.Response){
-    ns := request.PathParameter("namespace")
-    pname := request.PathParameter("pod")
-    cname := request.PathParameter("container")
-    //TODO: check ns, pname, and cname are real and existed in K8s
-
-    klog.Infof("Run job on: "+ ns +" "+ pname +" "+ cname)
-    namespacedName := types.NamespacedName{
-                            Name: pname,
-                            Namespace: ns,
-                      }
-    //check if parameters are ready
-    freqInfo := p.infoWrapper(cname+"-freq", namespacedName)
-    iterInfo := p.infoWrapper(cname+"-iter", namespacedName)
-    pertInfo := p.infoWrapper(cname+"-pert", namespacedName)
-
-    freq, found := p.values[freqInfo]
-    if !found {
-        response.WriteErrorString(http.StatusBadRequest, provider.NewMetricNotFoundError(freqInfo.GroupResource, freqInfo.Metric).Error())
-        return
-    }
-
-    iter, found := p.values[iterInfo]
-    if !found {
-        response.WriteErrorString(http.StatusBadRequest, provider.NewMetricNotFoundError(iterInfo.GroupResource, iterInfo.Metric).Error())
-        return
-    }
-
-    pert, found := p.values[pertInfo]
-    if !found {
-        response.WriteErrorString(http.StatusBadRequest, provider.NewMetricNotFoundError(pertInfo.GroupResource, pertInfo.Metric).Error())
-        return
-    }
-
-    klog.Infof(freq.String())
-    klog.Infof(iter.String())
-    klog.Infof(pert.String())
-}
 
 // get the value from the map of provider (p.values)
 func (p *colibriProvider) valueFor(info provider.CustomMetricInfo, name types.NamespacedName) (resource.Quantity, error) {
