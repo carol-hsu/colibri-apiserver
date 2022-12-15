@@ -1,3 +1,17 @@
+## Copyright 2022 Carol Hsu
+## 
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+## 
+##     http://www.apache.org/licenses/LICENSE-2.0
+## 
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -71,25 +85,6 @@ spec:
       - name: temp-vol
         emptyDir: {}
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: colibri-resource-reader
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: colibri-resource-reader
-subjects:
-- kind: ServiceAccount
-  name: colibri-apiserver
-  namespace: colibri
----
-kind: ServiceAccount
-apiVersion: v1
-metadata:
-  name: colibri-apiserver
-  namespace: colibri
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -120,15 +115,24 @@ spec:
   groupPriorityMinimum: 100
   versionPriority: 100
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+kind: ServiceAccount
+apiVersion: v1
 metadata:
-  name: colibri-server-resources
-rules:
-- apiGroups:
-  - custom.metrics.k8s.io
-  resources: ["*"]
-  verbs: ["*"]
+  name: colibri-apiserver
+  namespace: colibri
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: colibri-resource-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: colibri-resource-reader
+subjects:
+- kind: ServiceAccount
+  name: colibri-apiserver
+  namespace: colibri
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -143,6 +147,71 @@ rules:
   verbs:
   - get
   - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: colibri-job-runner-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: colibri-job-runner
+subjects:
+- kind: ServiceAccount
+  name: colibri-apiserver
+  namespace: colibri
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: colibri-job-runner
+rules:
+- apiGroups:
+  - "batch"
+  resources:
+  - jobs
+  verbs:
+  - create
+---
+### For colibri job
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: colibri-job
+  namespace: colibri
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: colibri-apiserver-post-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: colibri-apiserver-post
+subjects:
+- kind: ServiceAccount
+  name: colibri-job
+  namespace: colibri
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: colibri-apiserver-post
+rules:
+- apiGroups:
+  - ""
+  resources: ["services/proxy"]
+  verbs: ["create"]
+#---
+#apiVersion: rbac.authorization.k8s.io/v1
+#kind: ClusterRole
+#metadata:
+#  name: colibri-server-resources
+#rules:
+#- apiGroups:
+#  - custom.metrics.k8s.io
+#  resources: ["*"]
+#  verbs: ["*"]
 #---
 #apiVersion: rbac.authorization.k8s.io/v1
 #kind: ClusterRoleBinding

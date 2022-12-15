@@ -1,3 +1,19 @@
+/*
+Copyright 2022 Carol Hsu
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package provider
 
 import (
@@ -90,7 +106,8 @@ func (p *colibriProvider) runJob(request *restful.Request, response *restful.Res
                       }
 
     // check all naming on the path is existing/running compute unit
-    if err := p.checkPod(ns, pname); err != nil {
+    pod, err := p.checkPod(ns, pname)
+    if err != nil {
         response.WriteError(http.StatusBadRequest, err)
         return
     }
@@ -112,6 +129,7 @@ func (p *colibriProvider) runJob(request *restful.Request, response *restful.Res
     p.values[pertInfo] = *resource.NewQuantity(int64(params.Percentile), resource.DecimalSI)
 
     response.Write([]byte("Running colibri: "+ ns +" "+ pname +" "+ pid+"\n"))
+    p.runColibriJob(pod, params, ns, pname, pid)
 
 }
 
@@ -178,7 +196,7 @@ func (p *colibriProvider) putResult(request *restful.Request, response *restful.
     klog.Infof("Put result for: "+ ns +" "+ pname +" "+ pid)
 
     // check all naming on the path is existing/running compute unit
-    if err := p.checkPod(ns, pname); err != nil {
+    if _, err := p.checkPod(ns, pname); err != nil {
         response.WriteError(http.StatusBadRequest, err)
         return
     }
