@@ -1,6 +1,0 @@
-{
-    "swagger": "2.0",
-    "host": "localhost:8080",
-    "basePath": "/api/v1/namespaces/colibri/services/colibri-apiserver:http/proxy/colibri/",
-    
-}
