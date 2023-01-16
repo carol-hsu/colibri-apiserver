@@ -62,17 +62,16 @@ spec:
         app: colibri-apiserver
       name: colibri-apiserver
     spec:
-      nodeName: gabbro
       serviceAccountName: colibri-apiserver
       containers:
       - name: colibri-apiserver
-        image: gabbro:30500/colibri-apiserver:latest
+        image: colibri-apiserver:latest
         imagePullPolicy: IfNotPresent
         args:
         - colibri-apiserver
         - --secure-port=6443
         - --logtostderr=true
-        - --v=2
+        - --v=1
         ports:
         - containerPort: 6443
           name: https

@@ -101,7 +101,7 @@ func (p *colibriProvider) runColibriJob(pod *unstructured.Unstructured, params *
                                     "containers": []map[string]interface{}{
                                         {
                                             "name": "cjob",
-                                            "image": "gabbro:30500/colibri-job:latest",
+                                            "image": "gabbro:30500/colibri-job:raw",
                                             "imagePullPolicy": "Never",
                                             "command": []string{
                                                 "colibri", "--pid", pid,

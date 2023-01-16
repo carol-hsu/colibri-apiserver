@@ -99,7 +99,7 @@ func (p *colibriProvider) runJob(request *restful.Request, response *restful.Res
     pname := request.PathParameter("pod")
     pid := request.PathParameter("process")
 
-    klog.Infof("Run Colibri for: "+ ns +" "+ pname +" "+ pid)
+    klog.Infof("Run Colibri for: "+ ns +"."+ pname +"."+ pid)
     namespacedName := types.NamespacedName{
                             Name: pname,
                             Namespace: ns,
@@ -128,8 +128,9 @@ func (p *colibriProvider) runJob(request *restful.Request, response *restful.Res
     pertInfo := p.infoWrapper(pid+"-pert", namespacedName)
     p.values[pertInfo] = *resource.NewQuantity(int64(params.Percentile), resource.DecimalSI)
 
-    response.Write([]byte("Running colibri: "+ ns +" "+ pname +" "+ pid+"\n"))
     p.runColibriJob(pod, params, ns, pname, pid)
+    klog.Infof("Started Colibri job: "+ns+"."+pname +"."+ pid)
+    response.Write([]byte("Running colibri: "+ ns +" "+ pname +" "+ pid+"\n"))
 
 }
 
@@ -186,6 +187,8 @@ func (p *colibriProvider) putMetric(value string, key string, nsname types.Names
 
 func (p *colibriProvider) putResult(request *restful.Request, response *restful.Response){
 
+    klog.Infof("Get request for putting result")
+
     names := strings.Split(request.PathParameter("resultId"), ".")
     if len(names) < 3 {
         response.WriteErrorString(http.StatusBadRequest, "Result ID is not existed\n")
@@ -193,7 +196,6 @@ func (p *colibriProvider) putResult(request *restful.Request, response *restful.
     }
     ns, pname, pid := names[0], names[1], names[2]
 
-    klog.Infof("Put result for: "+ ns +" "+ pname +" "+ pid)
 
     // check all naming on the path is existing/running compute unit
     if _, err := p.checkPod(ns, pname); err != nil {
@@ -233,7 +235,8 @@ func (p *colibriProvider) putResult(request *restful.Request, response *restful.
         return
     }
 
-    response.Write([]byte("Put Colibri result: "+ ns +" "+ pname +" "+ pid+"\n"))
+    klog.Infof("Put result for: "+ ns +"."+ pname +"."+ pid)
+    response.Write([]byte("Put Colibri result: "+ ns +"."+ pname +"."+ pid+"\n"))
 
 }
 
