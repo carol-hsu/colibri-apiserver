@@ -70,14 +70,14 @@ POST /{namespace}/{pod}/{processId}
 | processId | `path` | string | ✓ | | The process ID of the targeted application |
 | freq | `body` | int | ✓ | | The query interval in millisecond |
 | iter | `body` | int | ✓ | | The query iterations |
-| pert | `body` | float | ✓ | | The percentile number for data analytic |
+| pert | `body` | int | ✓ | | The percentile number for data analytic |
 
 
 #### All responses
 | Code | Status | Description |
 |------|--------|-------------|
 | 200 |  |  | 
-|  | Bad request |  |
+| 400 | Bad request | Pod is not existed / the format of parameter set is not correct |
 
 
 ### <span id="check-job"></span> Review a parameter set of a job
@@ -92,17 +92,17 @@ GET /{namespace}/{pod}/{processId}/param
 
 #### Parameters
 
-| Name | Source | Type | Go type | Required | Default | Description |
-|------|--------|------|---------| :------: |---------|-------------|
-| namespace | `path` | string | string | ✓ | | The K8s Namespace of the targeted application |
-| pod | `path` | string | string | ✓ | | The K8s Pod of the targeted application |
-| processId | `path` | string | string | ✓ | | The process ID of the targeted application |
+| Name | Source | Type  | Required | Default | Description |
+|------|--------|------| :------: |---------|-------------|
+| namespace | `path` | string | ✓ | | The K8s Namespace of the targeted application |
+| pod | `path` | string | ✓ | | The K8s Pod of the targeted application |
+| processId | `path` | string | ✓ | | The process ID of the targeted application |
 
 #### All responses
 | Code | Status | Description |
 |------|--------|-------------|
 | 200 | OK | Return a parameter set | 
-|  | Bad request |  |
+| 400 | Bad request | There is no such targeted resource|
 
 
 
@@ -120,19 +120,20 @@ POST /{requestId}
 
 #### Parameters
 
-| Name | Source | Type | Go type | Required | Default | Description |
-|------|--------|------|---------| :------: |---------|-------------|
-| requestId | `path` | string | string | ✓ | | The uuid for a specific job |
-| cpu | `body` | string | string | ✓ | | CPU utilization |
-| ram | `body` | string | string | ✓ | | Memory utilization |
-| ingress | `body` | string | string | ✓ | | Ingress traffic bandwidth utilization |
-| egress | `body` | string | string | ✓ | | Egress traffic bandwidth utilization |
+| Name | Source | Type  | Required | Default | Description |
+|------|--------|------| :------: |---------|-------------|
+| requestId | `path` | string | ✓ | | The uuid for a specific job |
+| cpu | `body` | string | ✓ | | CPU utilization |
+| ram | `body` | string | ✓ | | Memory utilization |
+| ingress | `body` | string | ✓ | | Ingress traffic bandwidth utilization |
+| egress | `body` | string | ✓ | | Egress traffic bandwidth utilization |
 
 #### All responses
 | Code | Status | Description |
 |------|--------|-------------|
 | 200 | OK  |  | 
-|  | Bad request |  |
+| 400 | Bad request | Pod is not existed / the format of parameter set is not correct |
+| 500 | Internal server error  | Cannot store the metrics | 
 
 
 ### <span id="read-job"></span> Read a result
@@ -146,15 +147,15 @@ GET /{namespace}/{pod}/{processId}
 
 #### Parameters
 
-| Name | Source | Type | Go type | Required | Default | Description |
-|------|--------|------|---------| :------: |---------|-------------|
-| namespace | `path` | string | string | ✓ | | The K8s Namespace of the targeted application |
-| pod | `path` | string | string | ✓ | | The K8s Pod of the targeted application |
-| processId | `path` | string | string | ✓ | | The process ID of the targeted application |
+| Name | Source | Type | Required | Default | Description |
+|------|--------|------| :------: |---------|-------------|
+| namespace | `path` | string | ✓ | | The K8s Namespace of the targeted application |
+| pod | `path` | string | ✓ | | The K8s Pod of the targeted application |
+| processId | `path` | string | ✓ | | The process ID of the targeted application |
 
 #### All responses
 | Code | Status | Description |
 |------|--------|-------------|
 | 200 | OK | Return a result including four metrics | 
-|  | Bad request |  |
+| 400 | Bad request | Pod/result is not existed |
 

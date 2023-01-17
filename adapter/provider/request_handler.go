@@ -115,7 +115,7 @@ func (p *colibriProvider) runJob(request *restful.Request, response *restful.Res
     //TODO: check what if parameters are not valid numbers
     params := new(jobParam)
     if err := request.ReadEntity(&params); err != nil {
-        response.WriteError(http.StatusInternalServerError, err)
+        response.WriteError(http.StatusBadRequest, err)
         return
     }
 
@@ -206,7 +206,7 @@ func (p *colibriProvider) putResult(request *restful.Request, response *restful.
     //TODO: check what if parameters are not valid numbers
     metrics := new(jobResult)
     if err := request.ReadEntity(&metrics); err != nil {
-        response.WriteError(http.StatusInternalServerError, err)
+        response.WriteError(http.StatusBadRequest, err)
         return
     }
 
