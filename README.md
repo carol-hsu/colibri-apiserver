@@ -63,14 +63,17 @@ POST /{namespace}/{pod}/{processId}
 
 #### Parameters
 
-| Name | Source | Type | Go type | Separator | Required | Default | Description |
-|------|--------|------|---------|-----------| :------: |---------|-------------|
-| body | `body` | [Pet](#pet) | `models.Pet` | | ✓ | | Pet object that needs to be added to the store |
+| Name | Source | Type | Go type | Required | Default | Description |
+|------|--------|------|---------| :------: |---------|-------------|
+| namespace | `path` | string | string | ✓ | | The K8s Namespace of the targeted application |
+| pod | `path` | string | string | ✓ | | The K8s Pod of the targeted application |
+| processId | `path` | string | string | ✓ | | The process ID of the targeted application |
 
 #### All responses
-| Code | Status | Description | Has headers | Schema |
-|------|--------|-------------|:-----------:|--------|
-| [405](#add-pet-405) | Method Not Allowed | Invalid input |  | [schema](#add-pet-405-schema) |
+| Code | Status | Description |
+|------|--------|-------------|
+| 200 |  |  | 
+|  | Bad request |  |
 
 
 ### <span id="check-job"></span> Review a parameter set of a job
@@ -79,32 +82,24 @@ POST /{namespace}/{pod}/{processId}
 GET /{namespace}/{pod}/{processId}/param
 ```
 
-#### Consumes
-  * application/x-www-form-urlencoded
-
 #### Produces
   * application/json
-  * application/xml
 
 
 #### Parameters
 
-| Name | Source | Type | Go type | Separator | Required | Default | Description |
-|------|--------|------|---------|-----------| :------: |---------|-------------|
-| petId | `path` | int64 (formatted integer) | `int64` |  | ✓ |  | ID of pet that needs to be updated |
-| name | `formData` | string | `string` |  |  |  | Updated name of the pet |
-| status | `formData` | string | `string` |  |  |  | Updated status of the pet |
+| Name | Source | Type | Go type | Required | Default | Description |
+|------|--------|------|---------| :------: |---------|-------------|
+| namespace | `path` | string | string | ✓ | | The K8s Namespace of the targeted application |
+| pod | `path` | string | string | ✓ | | The K8s Pod of the targeted application |
+| processId | `path` | string | string | ✓ | | The process ID of the targeted application |
 
 #### All responses
-| Code | Status | Description | Has headers | Schema |
-|------|--------|-------------|:-----------:|--------|
-| [405](#update-pet-with-form-405) | Method Not Allowed | Invalid input |  | [schema](#update-pet-with-form-405-schema) |
+| Code | Status | Description |
+|------|--------|-------------|
+| 200 |  |  | 
+|  | Bad request |  |
 
-#### Responses
-
-
-##### <span id="update-pet-with-form-405"></span> 405 - Invalid input
-Status: Method Not Allowed
 
 
 ### <span id="store-job"></span> Store/send back the result (of a job)
@@ -113,8 +108,49 @@ Status: Method Not Allowed
 POST /{requestId}
 ```
 
+#### Consumes
+  * application/json
+
+#### Produces
+  * text/plain
+
+#### Parameters
+
+| Name | Source | Type | Go type | Required | Default | Description |
+|------|--------|------|---------| :------: |---------|-------------|
+| requestId | `path` | string | string | ✓ | | The uuid for a specific job |
+| cpu | `body` | string | string | ✓ | | CPU utilization |
+| ram | `body` | string | string | ✓ | | Memory utilization |
+| ingress | `body` | string | string | ✓ | | Ingress traffic bandwidth utilization |
+| egress | `body` | string | string | ✓ | | Egress traffic bandwidth utilization |
+
+#### All responses
+| Code | Status | Description |
+|------|--------|-------------|
+| 200 | OK  |  | 
+|  | Bad request |  |
+
+
 ### <span id="read-job"></span> Read a result
 
 ```
 GET /{namespace}/{pod}/{processId}
 ```
+
+#### Produces
+  * application/json
+
+#### Parameters
+
+| Name | Source | Type | Go type | Required | Default | Description |
+|------|--------|------|---------| :------: |---------|-------------|
+| namespace | `path` | string | string | ✓ | | The K8s Namespace of the targeted application |
+| pod | `path` | string | string | ✓ | | The K8s Pod of the targeted application |
+| processId | `path` | string | string | ✓ | | The process ID of the targeted application |
+
+#### All responses
+| Code | Status | Description |
+|------|--------|-------------|
+| 200 |  |  | 
+|  | Bad request |  |
+
