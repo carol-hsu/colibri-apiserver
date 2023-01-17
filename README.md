@@ -63,11 +63,15 @@ POST /{namespace}/{pod}/{processId}
 
 #### Parameters
 
-| Name | Source | Type | Go type | Required | Default | Description |
-|------|--------|------|---------| :------: |---------|-------------|
-| namespace | `path` | string | string | ✓ | | The K8s Namespace of the targeted application |
-| pod | `path` | string | string | ✓ | | The K8s Pod of the targeted application |
-| processId | `path` | string | string | ✓ | | The process ID of the targeted application |
+| Name | Source | Type | Required | Default | Description |
+|------|--------|------| :------: |---------|-------------|
+| namespace | `path` | string | ✓ | | The K8s Namespace of the targeted application |
+| pod | `path` | string | ✓ | | The K8s Pod of the targeted application |
+| processId | `path` | string | ✓ | | The process ID of the targeted application |
+| freq | `body` | int | ✓ | | The query interval in millisecond |
+| iter | `body` | int | ✓ | | The query iterations |
+| pert | `body` | float | ✓ | | The percentile number for data analytic |
+
 
 #### All responses
 | Code | Status | Description |
@@ -97,7 +101,7 @@ GET /{namespace}/{pod}/{processId}/param
 #### All responses
 | Code | Status | Description |
 |------|--------|-------------|
-| 200 |  |  | 
+| 200 | OK | Return a parameter set | 
 |  | Bad request |  |
 
 
@@ -151,6 +155,6 @@ GET /{namespace}/{pod}/{processId}
 #### All responses
 | Code | Status | Description |
 |------|--------|-------------|
-| 200 |  |  | 
+| 200 | OK | Return a result including four metrics | 
 |  | Bad request |  |
 
