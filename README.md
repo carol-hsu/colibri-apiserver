@@ -76,7 +76,7 @@ POST /{namespace}/{pod}/{processId}
 #### All responses
 | Code | Status | Description |
 |------|--------|-------------|
-| 200 |  |  | 
+| 200 | OK |  | 
 | 400 | Bad request | Pod is not existed / the format of parameter set is not correct |
 
 
