@@ -26,50 +26,40 @@ After proxy is enable and you deploy Colibri API server, you can start to send A
 $ kubectl get pod -n colibri
 NAME                                 READY   STATUS    RESTARTS   AGE
 colibri-apiserver-55fbbb5594-7pmrm   1/1     Running   0          13m
+```
 
+The endpoint URL would be `http://localhost:8080/api/v1/namespaces/colibri/services/colibri-apiserver:http/proxy/colibri`.
+
+```
 // send a API requst
 
-$ curl --request GET -H 'Content-Type: application/json' http://localhost:8080/api/v1/namespaces/colibri/services/colibri-apiserver:http/proxy/colibri/default/obj-detect-tf-serving-6c56b6c79c-zqw46/26386 --data-raw '{"freq": 10, "iter": 20000, "pert": 99}'
+$ curl --request POST -H 'Content-Type: application/json' http://localhost:8080/api/v1/namespaces/colibri/services/colibri-apiserver:http/proxy/colibri/default/obj-detect-tf-serving-6c56b6c79c-zqw46/26386 --data-raw '{"freq": 10, "iter": 20000, "pert": 99}'
 Running colibri: default obj-detect-tf-serving-6c56b6c79c-zqw46 26386
 
-// get query results
-
-$ curl --request GET -H 'Content-Type: application/json' http://localhost:8080/api/v1/namespaces/colibri/services/colibri-apiserver:http/proxy/colibri/default/obj-detect-tf-serving-6c56b6c79c-zqw46/26386
-{
- "cpu": "11051m",
- "ram": "1201Mi",
- "ingress": "103M",
- "egress": "378k"
-}
 ```
 
 More available API pathes and their payloads are listed as below:
 
 | Method  | URI     | Name   | Summary |
 |---------|---------|--------|---------|
-| POST | /{namespace}/{pod}/{processId} | [add pet](#add-pet) | Add a new pet to the store |
-| GET | /{namespace}/{pod}/{processId}/param | [update-pet-with-form](#update-pet-with-form) | Finds Pets by status |
-| POST | /{requestId} | | |
-| GET | /{namespace}/{pod}/{processId} | | |
+| POST | /{namespace}/{pod}/{processId} | [run a job](#run-job) | Running a job with requested configurations |
+| GET | /{namespace}/{pod}/{processId}/param | [check query parameters](#check-job) | Review a parameter set of a job |
+| POST | /{requestId} | [save a result](#store-job) | Store/send back the result (of a job) |
+| GET | /{namespace}/{pod}/{processId} | [check a result](#read-job) | Read a result |
 
 ## Paths
 
-### <span id="add-pet"></span> Add a new pet to the store (*addPet*)
+### <span id="run-job"></span> Running a job with requested configurations
 
 ```
-POST /v2/pet
+POST /{namespace}/{pod}/{processId}
 ```
 
 #### Consumes
   * application/json
-  * application/xml
 
 #### Produces
-  * application/json
-  * application/xml
-
-#### Security Requirements
-  * petstore_auth: read:pets, write:pets
+  * text/plain
 
 #### Parameters
 
@@ -82,16 +72,11 @@ POST /v2/pet
 |------|--------|-------------|:-----------:|--------|
 | [405](#add-pet-405) | Method Not Allowed | Invalid input |  | [schema](#add-pet-405-schema) |
 
-#### Responses
 
-
-##### <span id="add-pet-405"></span> 405 - Invalid input
-
-
-### <span id="update-pet-with-form"></span> Updates a pet in the store with form data (*updatePetWithForm*)
+### <span id="check-job"></span> Review a parameter set of a job
 
 ```
-POST /v2/pet/{petId}
+GET /{namespace}/{pod}/{processId}/param
 ```
 
 #### Consumes
@@ -101,8 +86,6 @@ POST /v2/pet/{petId}
   * application/json
   * application/xml
 
-#### Security Requirements
-  * petstore_auth: read:pets, write:pets
 
 #### Parameters
 
@@ -123,5 +106,15 @@ POST /v2/pet/{petId}
 ##### <span id="update-pet-with-form-405"></span> 405 - Invalid input
 Status: Method Not Allowed
 
-###### <span id="update-pet-with-form-405-schema"></span> Schema
 
+### <span id="store-job"></span> Store/send back the result (of a job)
+
+```
+POST /{requestId}
+```
+
+### <span id="read-job"></span> Read a result
+
+```
+GET /{namespace}/{pod}/{processId}
+```
